@@ -1,0 +1,17 @@
+---
+# defaults file for minecraft
+minecraft_user: minecraft
+minecraft_group: minecraft
+server_install_path: /home/minecraft/vanilla
+minecraft_home_path: /home/minecraft
+server_backup_path: /home/minecraft/backup
+minecraft_max_memory: 4096M
+minecraft_initial_memory: 1024M
+
+# server properties
+minecraft_server_motd: vanilla
+server_difficulty: easy
+max_players: 8
+game_mode: survival
+pvp: "true"
+server_whitelist: "true"

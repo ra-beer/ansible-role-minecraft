@@ -1,0 +1,21 @@
+# Ensure that the backup runs at 03:00 am and one time in the week
+- name: creates an entry like 0 3 3 * *
+  cron:
+    name: minecraft_backup
+    minute: "0"
+    hour: "3"
+    weekday: "3"
+    job: "tar czf {{ server_backup_path }}/backup_$(date +%d-%m-%Y).tar.gz {{ server_install_path }}"
+  become: true
+  become_user: "{{ minecraft_user }}"
+  become_method: su
+
+- name: creates an entry for restarting at reboot
+  cron:
+    name: minecraft_restart
+    special_time: reboot
+    job: "{{ server_install_path }}/start.sh"
+  become: true
+  become_user: "{{ minecraft_user }}"
+  become_method: su
+

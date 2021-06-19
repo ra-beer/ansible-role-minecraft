@@ -1,0 +1,40 @@
+---
+- name: create Minecraft group
+  group:
+    state: present
+    name: "{{ minecraft_group }}"
+    system: yes
+
+- name: create Minecraft user
+  user:
+    state: present
+    name: "{{ minecraft_user }}"
+    group: "{{ minecraft_group }}"
+    home: "{{ minecraft_home_path }}"
+
+- include: download.yml
+
+- name: agree to EULA
+  copy:
+    src: eula.txt
+    dest: "{{ server_install_path }}/eula.txt"
+    mode: '0644'
+    owner: "{{ minecraft_user }}"
+    group: "{{ minecraft_group }}"
+
+- include: backup.yml
+
+- name: template start script
+  template: 
+    src: start.sh.j2
+    dest: "{{ server_install_path }}/start.sh"
+    owner: "{{ minecraft_user }}"
+    group: "{{ minecraft_group }}"
+    mode: '0755'
+
+- name: start minecraft
+  shell: "{{ server_install_path }}/start.sh"
+  become: true
+  become_user: "{{ minecraft_user }}"
+  become_method: su
+

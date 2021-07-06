@@ -1,68 +1,31 @@
-# wenn server am laufen dann stoppen
-- name: check if server is running
-  command: screen -ls minecraft
-  become: true
-  become_user: "{{ minecraft_user }}"
-  become_method: su
-  register: server_status
-  ignore_errors: true
-
-- name: stop server if running
-  command: screen -X -S minecraft quit
-  become: true
-  become_user: "{{ minecraft_user }}"
-  become_method: su
-  when: server_status.rc == 0
-
-# create backup directory
-- name: create server_backup_path
-  file:
-    state: directory
-    path: "{{ server_backup_path }}"
-    owner: "{{ minecraft_user }}"
-    group: "{{ minecraft_group }}"
-
-# server backup for updating
-- name: backup for updating
-  community.general.archive:
-    path: "{{ server_install_path }}"
-    dest: "{{ server_backup_path }}/backup_{{ ansible_date_time['date'] }}_update.tar.gz"
-    format: gz
-    owner: "{{ minecraft_user }}"
-    group: "{{ minecraft_group }}"
-  when: server_status.rc == 0
-
-# create install directories
-- name: create server_install_path
-  file: 
-    state: directory
-    path: "{{ server_install_path }}"
-    owner: "{{ minecraft_user }}"
-    group: "{{ minecraft_group }}"
-
+---
 # copy the url bash script
 - name: copy the bash script to the server
   copy:
     src: latest.sh
-    dest: "{{ server_install_path }}"
-    owner: "{{ minecraft_user }}"
-    group: "{{ minecraft_group }}"
+    dest: "{{ minecraft.install_path }}"
+    owner: "{{ minecraft.user }}"
+    group: "{{ minecraft.group }}"
     mode: '0755'
 
 # execute the url bash script
 - name: execute the script
-  shell: "{{ server_install_path }}/latest.sh"
+  shell: "{{ minecraft.install_path }}/latest.sh"
   register: script_latest_version
   become: true
-  become_user: "{{ minecraft_user }}"
+  become_user: "{{ minecraft.user }}"
   become_method: su
+
+- name: debug task
+  debug:
+    msg: "{{ script_latest_version }}"
 
 # Server.jar downloaden
 - name: download server.jar file
   get_url:
     url: "{{ script_latest_version.stdout }}"
-    dest: "{{ server_install_path }}/server.jar"
-    owner: "{{ minecraft_user }}"
-    group: "{{ minecraft_group }}"
+    dest: "{{ minecraft.install_path }}"
+    owner: "{{ minecraft.user }}"
+    group: "{{ minecraft.group }}"
     mode: '0755'
 

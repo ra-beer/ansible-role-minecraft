@@ -1,1 +1,1 @@
-curl -s https://www.minecraft.net/de-de/download/server |grep server.jar |cut -d '"' -f 2
+curl -s $(curl -fsSL 'https://launchermeta.mojang.com/mc/game/version_manifest.json' | jq -r 'first(.versions[]|select(.type == "release")).url') | jq -r '.downloads.server.url'

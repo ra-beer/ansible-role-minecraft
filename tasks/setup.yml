@@ -1,0 +1,30 @@
+---
+- name: create Minecraft group
+  group:
+    state: present
+    name: "{{ minecraft.group }}"
+    system: yes
+
+- name: create Minecraft user
+  user:
+    state: present
+    name: "{{ minecraft.user }}"
+    group: "{{ minecraft.group }}"
+    home: "{{ minecraft.home_path }}"
+
+# create install directories
+- name: create server_install_path
+  file:
+    state: directory
+    path: "{{ minecraft.install_path }}"
+    owner: "{{ minecraft.user }}"
+    group: "{{ minecraft.group }}"
+
+# create backup directory
+- name: create server_backup_path
+  file:
+    state: directory
+    path: "{{ minecraft.backup_path }}"
+    owner: "{{ minecraft.user }}"
+    group: "{{ minecraft.group }}"
+

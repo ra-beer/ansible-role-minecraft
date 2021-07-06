@@ -1,40 +1,57 @@
 ---
-- name: create Minecraft group
-  group:
-    state: present
-    name: "{{ minecraft_group }}"
-    system: yes
+- include: setup.yml
 
-- name: create Minecraft user
-  user:
-    state: present
-    name: "{{ minecraft_user }}"
-    group: "{{ minecraft_group }}"
-    home: "{{ minecraft_home_path }}"
+# wenn server am laufen dann stoppen
+- name: check if server is running
+  command: screen -ls minecraft
+  become: true
+  become_user: "{{ minecraft.user }}"
+  become_method: su
+  register: server_status
+  ignore_errors: true
+
+- name: stop server if running
+  command: screen -X -S minecraft quit
+  become: true
+  become_user: "{{ minecraft.user }}"
+  become_method: su
+  when: server_status.rc == 0
+
+# server backup for updating
+- name: backup for updating
+  community.general.archive:
+    path: "{{ minecraft.install_path }}"
+    dest: "{{ minecraft.backup_path }}/backup_{{ ansible_date_time['date'] }}_update.tar.gz"
+    format: gz
+    owner: "{{ minecraft.user }}"
+    group: "{{ minecraft.group }}"
+  when: server_status.rc == 0
 
 - include: download.yml
 
 - name: agree to EULA
   copy:
     src: eula.txt
-    dest: "{{ server_install_path }}/eula.txt"
+    dest: "{{ minecraft.install_path }}/eula.txt"
     mode: '0644'
-    owner: "{{ minecraft_user }}"
-    group: "{{ minecraft_group }}"
+    owner: "{{ minecraft.user }}"
+    group: "{{ minecraft.group }}"
 
-- include: backup.yml
+# making cronjobs for automatically backups and minecraft restart after system reboot 
+- include: cronjobs.yml
 
+# start the minecraft server
 - name: template start script
-  template: 
+  template:
     src: start.sh.j2
-    dest: "{{ server_install_path }}/start.sh"
-    owner: "{{ minecraft_user }}"
-    group: "{{ minecraft_group }}"
+    dest: "{{ minecraft.install_path }}/start.sh"
+    owner: "{{ minecraft.user }}"
+    group: "{{ minecraft.group }}"
     mode: '0755'
 
 - name: start minecraft
-  shell: "{{ server_install_path }}/start.sh"
+  shell: "{{ minecraft.install_path }}/start.sh"
   become: true
-  become_user: "{{ minecraft_user }}"
+  become_user: "{{ minecraft.user }}"
   become_method: su
 

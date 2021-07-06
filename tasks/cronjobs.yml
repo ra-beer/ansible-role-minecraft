@@ -5,17 +5,17 @@
     minute: "0"
     hour: "3"
     weekday: "3"
-    job: "tar czf {{ server_backup_path }}/backup_$(date +%d-%m-%Y).tar.gz {{ server_install_path }}"
+    job: "tar czf {{ minecraft.backup_path }}/backup_$(date +\\%d-\\%m-\\%Y).tar.gz {{ minecraft.install_path }}"
   become: true
-  become_user: "{{ minecraft_user }}"
+  become_user: "{{ minecraft.user }}"
   become_method: su
 
 - name: creates an entry for restarting at reboot
   cron:
     name: minecraft_restart
     special_time: reboot
-    job: "{{ server_install_path }}/start.sh"
+    job: "{{ minecraft.install_path }}/start.sh"
   become: true
-  become_user: "{{ minecraft_user }}"
+  become_user: "{{ minecraft.user }}"
   become_method: su
 
